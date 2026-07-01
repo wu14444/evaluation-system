@@ -1,0 +1,22 @@
+server:
+  port: 8088
+  error:
+    include-stacktrace: always
+    include-exception: true
+    include-message: always
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/student_evaluation?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: wpc123123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.eval.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
