@@ -30,6 +30,7 @@ com\eval\service\CompetitionService.class
 com\eval\entity\Competition.class
 com\eval\mapper\CategoryMapper.class
 com\eval\config\WebMvcConfig.class
+com\eval\service\AiTools.class
 com\eval\service\impl\TotalScoreServiceImpl.class
 com\eval\mapper\UserMapper.class
 com\eval\service\impl\TeacherEvalServiceImpl.class

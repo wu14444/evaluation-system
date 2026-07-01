@@ -40,6 +40,7 @@ D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\mappe
 D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\mapper\TeacherEvalMapper.java
 D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\mapper\TotalScoreMapper.java
 D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\mapper\UserMapper.java
+D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\service\AiTools.java
 D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\service\AuditLogService.java
 D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\service\BatchService.java
 D:\gitTest\SpringTest\xiao_xue_qi\evaluation-system\src\main\java\com\eval\service\CategoryService.java

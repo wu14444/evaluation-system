@@ -38,6 +38,9 @@ public class AiAssistantController {
     // Spring AI ChatClient — 负责与 DeepSeek 大模型通信
     private final ChatClient chatClient;
 
+    // AI 数据库工具 — 注册为 tool 让模型自主调用
+    private final AiTools aiTools;
+
     // 系统提示词：限定 AI 的回答范围为本系统相关
     private static final String SYSTEM_PROMPT = """
             你是"学生综合素质评价系统"的智能助手。你的职责是：
@@ -48,6 +51,8 @@ public class AiAssistantController {
             - 引导学生完成自评、互评、教师打分等操作
             - 解释排名规则、综合分计算方式
             - 回答系统功能使用问题
+            - 你可以调用数据库工具查询实时数据，包括学生信息、得分、排名、竞赛标准等
+            - 当用户问某个学生的具体情况时，应该主动查询数据库获取真实数据
 
             【评分规则概要】
             - 六大维度：德育20% + 智育35% + 体育15% + 美育10% + 劳育10% + 奖惩10% = 100%
@@ -64,7 +69,7 @@ public class AiAssistantController {
                                   CategoryService cs, BatchService bs, SelfEvalService ses,
                                   UserService us, CompetitionService comps, RewardPunishService rps,
                                   AuditLogService als, HttpServletRequest req,
-                                  ChatClient.Builder builder) {
+                                  ChatClient.Builder builder, AiTools aiTools) {
         this.totalScoreMapper = tsm;
         this.indicatorService = is;
         this.categoryService = cs;
@@ -75,6 +80,7 @@ public class AiAssistantController {
         this.rewardPunishService = rps;
         this.auditLogService = als;
         this.request = req;
+        this.aiTools = aiTools;
 
         // 配置对话记忆：滑动窗口，保留最近 20 条消息
         ChatMemory chatMemory = MessageWindowChatMemory.builder()
@@ -82,10 +88,13 @@ public class AiAssistantController {
                 .maxMessages(20)
                 .build();
 
-        // 构建 ChatClient：配置系统提示词和记忆拦截器
+        // 构建 ChatClient：配置系统提示词、记忆拦截器、数据库工具
+        // .defaultTools(aiTools) 会把 AiTools 中所有 @Tool 方法注册给大模型
+        // 当用户问到相关问题时，模型会自主决定调用哪个工具查询数据库
         this.chatClient = builder
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultTools(aiTools)
                 .build();
     }
 
@@ -288,7 +297,6 @@ public class AiAssistantController {
                         emitter::completeWithError,
                         emitter::complete
                 );
-
         return emitter;
     }
 }
