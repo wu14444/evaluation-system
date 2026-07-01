@@ -1,0 +1,33 @@
+server:
+  port: 8088
+  error:
+    include-stacktrace: always
+    include-exception: true
+    include-message: always
+spring:
+  ai:
+    openai:
+      api-key: sk-af5b33f297404fadbecc4e5560ab1a6d
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-v4-flash
+  datasource:
+    url: jdbc:mysql://localhost:3306/student_evaluation?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 152491
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.eval.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

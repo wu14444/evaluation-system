@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>班级管理</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>:root{--w:240px}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Microsoft YaHei',sans-serif;background:#f5f7fa;display:flex;min-height:100vh}.sidebar{width:var(--w);background:linear-gradient(180deg,#2c3e6d,#1a2744);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100}.sidebar .logo{padding:20px 16px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar .logo h5{font-size:15px;color:#e8e8ff;margin:0}.sidebar .nav-item a{color:rgba(255,255,255,.75);padding:12px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;font-size:14px}.sidebar .nav-item a:hover,.sidebar .nav-item a.active{background:rgba(255,255,255,.08);color:#fff;border-left:3px solid #5b9bff}.main-content{margin-left:var(--w);flex:1;padding:24px}.card-custom{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:20px;margin-bottom:20px}.page-title{font-size:20px;font-weight:600;color:#2c3e50;margin-bottom:16px;border-left:4px solid #4e73df;padding-left:10px}</style></head>
+<body th:with="role=${role}"><aside class="sidebar"><div class="logo"><h5><i class="bi bi-mortarboard"></i> 学生综合素质评价</h5></div><div class="nav-menu pt-2">
+<div class="nav-item"><a href="/home"><i class="bi bi-speedometer2"></i> 首页</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/indicators"><i class="bi bi-gear"></i> 指标设置</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/competitions"><i class="bi bi-trophy"></i> 竞赛证书</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/batches"><i class="bi bi-calendar-check"></i> 评价批次</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/users"><i class="bi bi-people"></i> 用户管理</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/classes"><i class="bi bi-building"></i> 班级管理</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i> 申诉管理</a></div>
+<div class="nav-item" th:if="${role == 0}"><a href="/student/self-eval"><i class="bi bi-pencil-square"></i> 学生自评</a></div>
+<div class="nav-item" th:if="${role == 0}"><a href="/student/appeal"><i class="bi bi-exclamation-triangle"></i> 我要申诉</a></div>
+<div class="nav-item" th:if="${role == 0}"><a href="/student/peer-eval"><i class="bi bi-people-fill"></i> 班级互评</a></div>
+<div class="nav-item" th:if="${role == 1}"><a href="/teacher/scoring"><i class="bi bi-clipboard-check"></i> 教师打分</a></div>
+<div class="nav-item" th:if="${role == 1}"><a href="/teacher/growth"><i class="bi bi-graph-up-arrow"></i> 成长档案</a></div>
+<div class="nav-item"><a href="/score/summary"><i class="bi bi-bar-chart"></i> 分数汇总</a></div>
+<div class="nav-item"><a href="/ai-assistant"><i class="bi bi-robot"></i> AI助手</a></div>
+<div class="nav-item"><a href="/data-screen"><i class="bi bi-display"></i> 数据大屏</a></div>
+<div class="nav-item mt-3"><a href="/logout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></div></div></aside>
+<div class="main-content"><div class="page-title"><i class="bi bi-building"></i> 班级管理</div>
+<div class="card-custom"><button class="btn btn-primary btn-sm mb-3" id="addBtn">+ 新增班级</button>
+<table class="table table-bordered table-hover"><thead><tr><th>ID</th><th>班级名称</th><th>年级</th><th>专业</th><th>学院</th><th>辅导员</th><th>人数</th><th>操作</th></tr></thead>
+<tbody id="tb"><tr><td colspan="8" class="text-center">加载中...</td></tr></tbody></table></div>
+<div class="modal fade" id="dlg"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h6 id="dlgT">新增班级</h6><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="cid"><div class="mb-2"><label>班级名称</label><input id="cn" class="form-control"></div><div class="row g-2"><div class="col"><label>年级</label><input id="cg" class="form-control"></div><div class="col"><label>专业</label><input id="cm" class="form-control"></div></div><div class="row g-2 mt-2"><div class="col"><label>学院</label><input id="cc" class="form-control"></div><div class="col"><label>人数</label><input id="cs" type="number" class="form-control" value="0"></div></div></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" id="saveBtn">保存</button></div></div></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+var modal, classList = [];
+document.addEventListener('DOMContentLoaded', function() {
+  modal = new bootstrap.Modal('#dlg');
+  document.getElementById('addBtn').addEventListener('click', openAdd);
+  document.getElementById('saveBtn').addEventListener('click', save);
+  loadClasses();
+});
+
+function loadClasses() {
+  fetch('/admin/api/class/list')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      classList = d.data || d;
+      var html = '';
+      classList.forEach(function(c, i) {
+        html += '<tr>';
+        html += '<td>' + c.id + '</td>';
+        html += '<td>' + c.class_name + '</td>';
+        html += '<td>' + (c.grade || '') + '</td>';
+        html += '<td>' + (c.major || '') + '</td>';
+        html += '<td>' + (c.college || '') + '</td>';
+        html += '<td>' + (c.advisor_name || '') + '</td>';
+        html += '<td>' + c.student_count + '</td>';
+        html += '<td>';
+        html += '<button class="btn btn-sm btn-outline-primary me-1 edit-btn" data-idx="' + i + '">编辑</button>';
+        html += '<button class="btn btn-sm btn-outline-danger del-btn" data-idx="' + i + '">删除</button>';
+        html += '</td></tr>';
+      });
+      document.getElementById('tb').innerHTML = html || '<tr><td colspan="8" class="text-center">暂无数据</td></tr>';
+
+      // 绑定事件 - 编辑
+      var editBtns = document.querySelectorAll('.edit-btn');
+      editBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-idx'));
+          var c = classList[idx];
+          editClass(c.id, c.class_name, c.grade || '', c.major || '', c.college || '', c.student_count);
+        });
+      });
+
+      // 绑定事件 - 删除
+      var delBtns = document.querySelectorAll('.del-btn');
+      delBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-idx'));
+          var c = classList[idx];
+          if (confirm('确定删除 ' + c.class_name + ' ?')) {
+            fetch('/admin/api/class/delete/' + c.id, { method: 'DELETE' })
+              .then(function() { loadClasses(); });
+          }
+        });
+      });
+    });
+}
+
+function openAdd() {
+  document.getElementById('dlgT').textContent = '新增班级';
+  document.getElementById('cid').value = '';
+  document.getElementById('cn').value = '';
+  document.getElementById('cg').value = '';
+  document.getElementById('cm').value = '';
+  document.getElementById('cc').value = '';
+  document.getElementById('cs').value = 0;
+  modal.show();
+}
+
+function editClass(id, name, grade, major, college, count) {
+  document.getElementById('dlgT').textContent = '编辑 - ' + name;
+  document.getElementById('cid').value = id;
+  document.getElementById('cn').value = name;
+  document.getElementById('cg').value = grade;
+  document.getElementById('cm').value = major;
+  document.getElementById('cc').value = college;
+  document.getElementById('cs').value = count;
+  modal.show();
+}
+
+function save() {
+  var data = {
+    id: document.getElementById('cid').value || null,
+    className: document.getElementById('cn').value,
+    grade: document.getElementById('cg').value,
+    major: document.getElementById('cm').value,
+    college: document.getElementById('cc').value,
+    studentCount: parseInt(document.getElementById('cs').value) || 0
+  };
+  fetch('/admin/api/class/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function() { modal.hide(); loadClasses(); });
+}
+</script></body></html>
