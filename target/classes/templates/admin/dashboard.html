@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>管理首页</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>:root{--w:240px}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Microsoft YaHei',sans-serif;background:#f5f7fa;display:flex;min-height:100vh}.sidebar{width:var(--w);background:linear-gradient(180deg,#2c3e6d,#1a2744);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}.sidebar .logo{padding:20px 16px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar .logo h5{font-size:15px;color:#e8e8ff;margin:0}.sidebar .nav-item a{color:rgba(255,255,255,.75);padding:12px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;font-size:14px;transition:all .2s}.sidebar .nav-item a:hover,.sidebar .nav-item a.active{background:rgba(255,255,255,.08);color:#fff;border-left:3px solid #5b9bff}.main-content{margin-left:var(--w);flex:1;padding:24px}.card-custom{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:20px;margin-bottom:20px}.stat-card{color:#fff;border-radius:10px;padding:20px}.sc-purple{background:linear-gradient(135deg,#667eea,#764ba2)}.sc-green{background:linear-gradient(135deg,#43e97b,#38f9d7);color:#333}.sc-orange{background:linear-gradient(135deg,#fa8231,#fdc36b)}.sc-blue{background:linear-gradient(135deg,#4e73df,#36b9cc)}.stat-card .sv{font-size:28px;font-weight:700}.stat-card .sl{font-size:13px;opacity:.85}.page-title{font-size:20px;font-weight:600;color:#2c3e50;margin-bottom:16px;border-left:4px solid #4e73df;padding-left:10px}table td{vertical-align:middle}.btn{border-radius:6px}.badge{border-radius:4px;padding:4px 8px;font-size:12px}</style></head>
+<body><aside class="sidebar"><div class="logo"><h5><i class="bi bi-mortarboard"></i> 学生综合素质评价</h5></div><div class="nav-menu pt-2">
+<div class="nav-item"><a href="/home"><i class="bi bi-speedometer2"></i> 首页</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/indicators"><i class="bi bi-gear"></i> 指标设置</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/competitions"><i class="bi bi-trophy"></i> 竞赛证书</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/batches"><i class="bi bi-calendar-check"></i> 评价批次</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/users"><i class="bi bi-people"></i> 用户管理</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/classes"><i class="bi bi-building"></i> 班级管理</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a></div>
+<div class="nav-item" th:if="${role == 2}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i> 申诉管理</a></div>
+<div class="nav-item" th:if="${role == 0}"><a href="/student/self-eval"><i class="bi bi-pencil-square"></i> 学生自评</a></div>
+<div class="nav-item" th:if="${role == 0}"><a href="/student/appeal"><i class="bi bi-exclamation-triangle"></i> 我要申诉</a></div>
+<div class="nav-item" th:if="${role == 0}"><a href="/student/peer-eval"><i class="bi bi-people-fill"></i> 班级互评</a></div>
+<div class="nav-item" th:if="${role == 1}"><a href="/teacher/scoring"><i class="bi bi-clipboard-check"></i> 教师打分</a></div>
+<div class="nav-item" th:if="${role == 1}"><a href="/teacher/growth"><i class="bi bi-graph-up-arrow"></i> 成长档案</a></div>
+<div class="nav-item"><a href="/score/summary"><i class="bi bi-bar-chart"></i> 分数汇总</a></div>
+<div class="nav-item"><a href="/ai-assistant"><i class="bi bi-robot"></i> AI助手</a></div>
+<div class="nav-item"><a href="/data-screen"><i class="bi bi-display"></i> 数据大屏</a></div>
+<div class="nav-item mt-3"><a href="/logout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></div></div></aside>
+<div class="main-content"><div class="page-title"><i class="bi bi-speedometer2"></i> 系统仪表盘</div>
+<div class="row g-3 mb-3">
+<div class="col-md-3"><div class="stat-card sc-purple"><div class="sl">学生总数</div><div class="sv" th:text="${userCount}">0</div></div></div>
+<div class="col-md-3"><div class="stat-card sc-green"><div class="sl">班级数量</div><div class="sv" th:text="${classCount}">0</div></div></div>
+<div class="col-md-3"><div class="stat-card sc-orange"><div class="sl">指标项数</div><div class="sv" th:text="${indicatorCount}">0</div></div></div>
+<div class="col-md-3"><div class="stat-card sc-blue"><div class="sl">评价批次</div><div class="sv" th:text="${batchCount}">0</div></div></div></div>
+<!-- 图表行 -->
+<div class="row g-3 mb-3">
+<div class="col-md-4"><div class="card-custom"><h6 class="mb-3">用户角色分布</h6><div id="c1" style="height:280px"></div></div></div>
+<div class="col-md-4"><div class="card-custom"><h6 class="mb-3">班级平均分对比</h6><div id="c2" style="height:280px"></div></div></div>
+<div class="col-md-4"><div class="card-custom"><h6 class="mb-3">得分TOP5</h6><table class="table table-sm"><thead><tr><th>#</th><th>姓名</th><th>班级</th><th>总分</th></tr></thead><tbody><tr th:each="s,st:${topList}"><td th:text="${st.index+1}"></td><td th:text="${s.student_name}"></td><td th:text="${s.class_name}"></td><td><strong th:text="${s.final_score}"></strong></td></tr></tbody></table></div></div></div>
+<!-- 底部填充 -->
+<div class="row g-3">
+<div class="col-md-6"><div class="card-custom"><h6>各班互评完成度</h6><div id="peerOverview">加载中...</div></div></div>
+<div class="col-md-6"><div class="card-custom"><h6>快捷入口</h6><div class="row g-2"><div class="col-4"><a href="/admin/indicators" class="btn btn-outline-primary w-100 py-3"><i class="bi bi-gear"></i><br>指标设置</a></div><div class="col-4"><a href="/admin/competitions" class="btn btn-outline-success w-100 py-3"><i class="bi bi-trophy"></i><br>竞赛证书</a></div><div class="col-4"><a href="/admin/rewards" class="btn btn-outline-warning w-100 py-3"><i class="bi bi-award"></i><br>奖惩管理</a></div><div class="col-4"><a href="/admin/appeals" class="btn btn-outline-danger w-100 py-3"><i class="bi bi-exclamation-triangle"></i><br>申诉管理</a></div><div class="col-4"><a href="/score/summary" class="btn btn-outline-info w-100 py-3"><i class="bi bi-bar-chart"></i><br>分数汇总</a></div><div class="col-4"><a href="/data-screen" class="btn btn-outline-dark w-100 py-3"><i class="bi bi-display"></i><br>数据大屏</a></div></div></div></div></div></div>
+<script>
+window.onload=function(){
+  fetch('/admin/api/dashboard').then(function(r){return r.json()}).then(function(d){d=d.data;var rd=d.roleDistribution||{};echarts.init(document.getElementById('c1')).setOption({tooltip:{trigger:'item'},series:[{type:'pie',radius:'60%',data:Object.entries(rd).map(function(e){return{name:e[0],value:e[1]}})}]});var cs=d.classScores||[];echarts.init(document.getElementById('c2')).setOption({xAxis:{type:'category',data:cs.map(function(i){return i.class_name})},yAxis:{type:'value'},series:[{type:'bar',data:cs.map(function(i){return parseFloat(i.avg_score||0).toFixed(1)}),itemStyle:{color:'#667eea'}}]})});
+  // 互评完成度
+  fetch('/admin/api/peer-overview').then(function(r){return r.json()}).then(function(d){var data=d.data||[];var h='<table class="table table-sm"><thead><tr><th>班级</th><th>应完成</th><th>已完成</th><th>完成率</th></tr></thead><tbody>';data.forEach(function(item){var pct=item.total>0?Math.round(item.done/item.total*100):0;h+='<tr><td>'+item.className+'</td><td>'+item.total+'</td><td>'+item.done+'</td><td><div class=progress style=height:18px><div class=progress-bar style=width:'+pct+'%>'+pct+'%</div></div></td></tr>'});h+='</tbody></table>';document.getElementById('peerOverview').innerHTML=h||'暂无数据'})});
+};</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script></body></html>
