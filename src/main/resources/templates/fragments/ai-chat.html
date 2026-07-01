@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="floating-chat">
+  <!-- 浮动AI聊天组件 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    /* FAB 浮动按钮 */
+    .ai-fab {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4e73df, #224abe);
+      box-shadow: 0 4px 20px rgba(78, 115, 223, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 9997;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: none;
+      color: white;
+    }
+    .ai-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 28px rgba(78, 115, 223, 0.65);
+    }
+    .ai-fab-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background: #e74a3b;
+      border: 2px solid white;
+      font-size: 11px;
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    /* 聊天面板 */
+    .ai-chat-panel {
+      position: fixed;
+      bottom: 96px;
+      right: 28px;
+      width: 360px;
+      height: 520px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 48px rgba(0, 0, 0, 0.18);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9998;
+      transform: scale(0.6) translateY(30px);
+      opacity: 0;
+      transform-origin: bottom right;
+      pointer-events: none;
+      transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease, right 0.3s ease, border-radius 0.3s ease;
+    }
+    .ai-chat-panel.open {
+      animation: chatPopIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      pointer-events: auto;
+    }
+    .ai-chat-panel.closing {
+      animation: chatPopOut 0.2s ease-in forwards;
+      pointer-events: none;
+    }
+    .ai-chat-panel.fullscreen {
+      bottom: 0;
+      right: 0;
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+    }
+    @keyframes chatPopIn {
+      from { transform: scale(0.6) translateY(30px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes chatPopOut {
+      from { transform: scale(1) translateY(0); opacity: 1; }
+      to { transform: scale(0.6) translateY(20px); opacity: 0; }
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #4e73df, #224abe);
+      color: white;
+    }
+    .panel-header .header-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .panel-header .header-info { flex: 1; line-height: 1.3; }
+    .panel-header .header-title { font-size: 14px; font-weight: 600; display: block; }
+    .panel-header .header-sub { font-size: 11px; opacity: 0.8; }
+    .panel-header .header-actions { display: flex; gap: 8px; }
+    .panel-header .action-icon {
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      font-size: 16px;
+      transition: color 0.15s;
+    }
+    .panel-header .action-icon:hover { color: white; }
+    .ai-chat-panel .message-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8f9fa;
+    }
+    .ai-chat-panel .message-list::-webkit-scrollbar { width: 4px; }
+    .ai-chat-panel .message-list::-webkit-scrollbar-thumb { background: #dcdfe6; border-radius: 2px; }
+    .ai-chat-panel .msg-row { display: flex; align-items: flex-end; gap: 8px; }
+    .ai-chat-panel .msg-row.user { flex-direction: row-reverse; }
+    .ai-chat-panel .msg-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #e8f4ff; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 14px; color: #4e73df;
+    }
+    .ai-chat-panel .bubble {
+      max-width: min(600px, 70%);
+      padding: 10px 13px;
+      font-size: 13px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+    .ai-chat-panel .bubble.assistant {
+      background: white;
+      color: #303133;
+      border-radius: 2px 12px 12px 12px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    }
+    .ai-chat-panel .bubble.user {
+      background: #4e73df;
+      color: white;
+      border-radius: 12px 2px 12px 12px;
+    }
+    .ai-chat-panel .typing-bubble {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 16px;
+    }
+    .ai-chat-panel .dot {
+      display: inline-block;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #c0c4cc;
+      animation: dotBounce 1.4s infinite ease-in-out;
+    }
+    .ai-chat-panel .dot:nth-child(2) { animation-delay: 0.16s; }
+    .ai-chat-panel .dot:nth-child(3) { animation-delay: 0.32s; }
+    @keyframes dotBounce {
+      0%, 80%, 100% { transform: translateY(0); background: #c0c4cc; }
+      40% { transform: translateY(-7px); background: #4e73df; }
+    }
+    .ai-chat-panel .cursor-blink { color: #4e73df; animation: cursorBlink 0.7s infinite; }
+    @keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .ai-chat-panel .input-area {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid #ebeef5;
+      background: white;
+      flex-shrink: 0;
+    }
+    .ai-chat-panel .input-area .chat-input { flex: 1; }
+    .ai-chat-panel .input-area .chat-input textarea {
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 8px 10px;
+      resize: none;
+    }
+    .ai-chat-panel .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .ai-chat-panel .suggest-bar {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      overflow-x: auto;
+      background: #f5f7fa;
+      border-bottom: 1px solid #ebeef5;
+      flex-shrink: 0;
+    }
+    .ai-chat-panel .suggest-bar::-webkit-scrollbar { display: none; }
+    .ai-chat-panel .suggest-tag {
+      font-size: 12px;
+      padding: 4px 10px;
+      white-space: nowrap;
+      border: 1px solid #dcdfe6;
+      border-radius: 12px;
+      color: #606266;
+      cursor: pointer;
+      background: white;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .ai-chat-panel .suggest-tag:hover { border-color: #4e73df; color: #4e73df; }
+    .ai-chat-panel .bubble.assistant p { margin: 0; }
+    @media (max-width: 480px) {
+      .ai-chat-panel { right: 0; bottom: 0; width: 100vw; height: 70vh; border-radius: 16px 16px 0 0; }
+      .ai-fab { bottom: 20px; right: 20px; }
+    }
+  </style>
+
+  <!-- FAB 按钮 -->
+  <button class="ai-fab" id="aiFab" onclick="toggleChatPanel()">
+    <i class="bi bi-robot" style="font-size:24px"></i>
+    <span class="ai-fab-badge" id="aiFabBadge" style="display:none">0</span>
+  </button>
+
+  <!-- 聊天面板 -->
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <!-- 头部 -->
+    <div class="panel-header">
+      <div class="header-avatar"><i class="bi bi-robot" style="font-size:18px;color:white"></i></div>
+      <div class="header-info">
+        <span class="header-title">AI 智能助手</span>
+        <span class="header-sub"><i class="bi bi-circle-fill" style="font-size:7px;color:#1cc88a"></i> 在线</span>
+      </div>
+      <div class="header-actions">
+        <i class="bi bi-trash action-icon" onclick="clearChatMessages()" title="清空对话"></i>
+        <i class="bi bi-arrows-fullscreen action-icon" onclick="toggleFullscreen()" title="全屏" id="fullscreenIcon"></i>
+        <i class="bi bi-x-lg action-icon" onclick="closeChatPanel()" title="关闭"></i>
+      </div>
+    </div>
+    <!-- 快捷建议 -->
+    <div class="suggest-bar" id="suggestBar">
+      <span class="suggest-tag" onclick="quickAsk('德育怎么评分？')">德育评分</span>
+      <span class="suggest-tag" onclick="quickAsk('智育怎么评分？')">智育评分</span>
+      <span class="suggest-tag" onclick="quickAsk('竞赛怎么加分？')">竞赛加分</span>
+      <span class="suggest-tag" onclick="quickAsk('如何申诉？')">如何申诉</span>
+    </div>
+    <!-- 消息列表 -->
+    <div class="message-list" id="chatMessageList">
+      <div class="msg-row assistant">
+        <div class="msg-avatar"><i class="bi bi-cpu"></i></div>
+        <div class="bubble assistant">👋 你好！我是综合评价系统的智能助手，可以帮你：<br><br>
+          1. 查询德智体美劳评分标准<br>
+          2. 解释加分、申诉等规则<br>
+          3. 引导完成自评/互评操作</div>
+      </div>
+    </div>
+    <!-- 输入区域 -->
+    <div class="input-area">
+      <div class="chat-input">
+        <textarea id="chatInput" class="form-control" rows="1" placeholder="输入消息，Enter 发送"
+                  style="border-radius:8px;font-size:13px;resize:none"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"></textarea>
+      </div>
+      <button class="btn btn-primary send-btn" onclick="sendChatMessage()" id="sendBtn">
+        <i class="bi bi-send"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ===== 状态 =====
+    const STREAM_URL = '/api/ai/stream';
+    const SESSION_ID = crypto.randomUUID();
+    let chatStreaming = false;
+    let chatWaiting = false;
+    let chatMessages = [];
+    let chatUnread = 0;
+    let isPanelOpen = false;
+    let isFullscreen = false;
+    let currentEventSource = null;
+
+    // ===== 面板控制 =====
+    function toggleChatPanel() {
+      if (isPanelOpen) closeChatPanel();
+      else openChatPanel();
+    }
+
+    function openChatPanel() {
+      const panel = document.getElementById('aiChatPanel');
+      panel.classList.remove('closing');
+      panel.classList.add('open');
+      isPanelOpen = true;
+      document.getElementById('aiFabBadge').style.display = 'none';
+      chatUnread = 0;
+      setTimeout(scrollChatToBottom, 100);
+    }
+
+    function closeChatPanel() {
+      const panel = document.getElementById('aiChatPanel');
+      panel.classList.remove('open');
+      panel.classList.add('closing');
+      isPanelOpen = false;
+      setTimeout(() => { panel.classList.remove('closing'); }, 250);
+    }
+
+    function toggleFullscreen() {
+      isFullscreen = !isFullscreen;
+      document.getElementById('aiChatPanel').classList.toggle('fullscreen', isFullscreen);
+      const icon = document.getElementById('fullscreenIcon');
+      icon.className = isFullscreen ? 'bi bi-fullscreen-exit action-icon' : 'bi bi-arrows-fullscreen action-icon';
+      setTimeout(scrollChatToBottom, 100);
+    }
+
+    function clearChatMessages() {
+      chatMessages = [];
+      const list = document.getElementById('chatMessageList');
+      list.innerHTML = '<div class="msg-row assistant"><div class="msg-avatar"><i class="bi bi-cpu"></i></div><div class="bubble assistant">👋 已开启新对话！</div></div>';
+    }
+
+    // ===== 消息发送 =====
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text || chatStreaming || chatWaiting) return;
+
+      // 显示用户消息
+      appendMessage('user', text);
+      input.value = '';
+      chatWaiting = true;
+      showTyping();
+
+      // 创建 EventSource SSE 连接
+      currentEventSource = new EventSource(STREAM_URL + '?message=' + encodeURIComponent(text) + '&sessionId=' + SESSION_ID);
+
+      // 添加空的助手消息占位
+      const msgIdx = chatMessages.length;
+      chatMessages.push({ role: 'assistant', content: '' });
+      const msgDiv = appendAssistantBubble('');
+
+      chatWaiting = false;
+      chatStreaming = true;
+      document.getElementById('sendBtn').disabled = true;
+      hideTyping();
+
+      currentEventSource.onmessage = function(e) {
+        chatMessages[msgIdx].content += e.data;
+        msgDiv.innerHTML = renderMarkdown(chatMessages[msgIdx].content);
+        if (chatMessages[msgIdx].content.length > 0 && !msgDiv.querySelector('.cursor-blink')) {
+          msgDiv.innerHTML += '<span class="cursor-blink">|</span>';
+        }
+        scrollChatToBottom();
+      };
+
+      currentEventSource.onerror = function() {
+        currentEventSource.close();
+        currentEventSource = null;
+        chatStreaming = false;
+        document.getElementById('sendBtn').disabled = false;
+        // 移除末尾光标
+        const cursor = msgDiv.querySelector('.cursor-blink');
+        if (cursor) cursor.remove();
+        // 未读计数
+        if (!isPanelOpen) {
+          chatUnread++;
+          const badge = document.getElementById('aiFabBadge');
+          badge.textContent = chatUnread;
+          badge.style.display = '';
+        }
+      };
+    }
+
+    function quickAsk(text) {
+      document.getElementById('chatInput').value = text;
+      sendChatMessage();
+    }
+
+    // ===== DOM 操作 =====
+    function appendMessage(role, content) {
+      chatMessages.push({ role, content });
+      const list = document.getElementById('chatMessageList');
+      const row = document.createElement('div');
+      row.className = 'msg-row ' + role;
+      if (role === 'user') {
+        row.innerHTML = '<div class="bubble user">' + escapeHtml(content) + '</div><div class="msg-avatar"><i class="bi bi-person"></i></div>';
+      }
+      list.appendChild(row);
+      scrollChatToBottom();
+    }
+
+    function appendAssistantBubble(content) {
+      const list = document.getElementById('chatMessageList');
+      const row = document.createElement('div');
+      row.className = 'msg-row assistant';
+      row.innerHTML = '<div class="msg-avatar"><i class="bi bi-cpu"></i></div><div class="bubble assistant">' + renderMarkdown(content) + '<span class="cursor-blink">|</span></div>';
+      list.appendChild(row);
+      scrollChatToBottom();
+      return row.querySelector('.bubble.assistant');
+    }
+
+    function showTyping() {
+      const list = document.getElementById('chatMessageList');
+      const div = document.createElement('div');
+      div.className = 'msg-row assistant';
+      div.id = 'typingIndicator';
+      div.innerHTML = '<div class="msg-avatar"><i class="bi bi-cpu"></i></div><div class="bubble assistant typing-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+      list.appendChild(div);
+      scrollChatToBottom();
+    }
+
+    function hideTyping() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    function scrollChatToBottom() {
+      const list = document.getElementById('chatMessageList');
+      list.scrollTop = list.scrollHeight;
+    }
+
+    // ===== 工具函数 =====
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    function renderMarkdown(text) {
+      if (!text) return '';
+      // 简单渲染：换行、加粗、列表
+      let html = escapeHtml(text);
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+  </script>
+</th:block>
+</html>
