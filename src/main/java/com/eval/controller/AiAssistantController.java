@@ -6,9 +6,16 @@ import com.eval.mapper.*;
 import com.eval.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -28,10 +35,36 @@ public class AiAssistantController {
     private final AuditLogService auditLogService;
     private final HttpServletRequest request;
 
+    // Spring AI ChatClient — 负责与 DeepSeek 大模型通信
+    private final ChatClient chatClient;
+
+    // 系统提示词：限定 AI 的回答范围为本系统相关
+    private static final String SYSTEM_PROMPT = """
+            你是"学生综合素质评价系统"的智能助手。你的职责是：
+
+            【你能做的】
+            - 解答德智体美劳各维度的评分标准和指标含义
+            - 解释加分规则、竞赛证书管理、申诉流程
+            - 引导学生完成自评、互评、教师打分等操作
+            - 解释排名规则、综合分计算方式
+            - 回答系统功能使用问题
+
+            【评分规则概要】
+            - 六大维度：德育20% + 智育35% + 体育15% + 美育10% + 劳育10% + 奖惩10% = 100%
+            - 每维度得分 = 自评30% + 教师评50% + 互评20%
+            - 综合总分 = 各维度得分 × 权重 + 奖惩加分
+
+            【回答风格】
+            - 简洁友好，口语化
+            - 涉及操作步骤时用数字列出
+            - 不确定的问题诚实说不知道，引导联系管理员
+            """;
+
     public AiAssistantController(TotalScoreMapper tsm, IndicatorService is,
                                   CategoryService cs, BatchService bs, SelfEvalService ses,
                                   UserService us, CompetitionService comps, RewardPunishService rps,
-                                  AuditLogService als, HttpServletRequest req) {
+                                  AuditLogService als, HttpServletRequest req,
+                                  ChatClient.Builder builder) {
         this.totalScoreMapper = tsm;
         this.indicatorService = is;
         this.categoryService = cs;
@@ -42,6 +75,18 @@ public class AiAssistantController {
         this.rewardPunishService = rps;
         this.auditLogService = als;
         this.request = req;
+
+        // 配置对话记忆：滑动窗口，保留最近 20 条消息
+        ChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .maxMessages(20)
+                .build();
+
+        // 构建 ChatClient：配置系统提示词和记忆拦截器
+        this.chatClient = builder
+                .defaultSystem(SYSTEM_PROMPT)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .build();
     }
 
     @GetMapping("/ai-assistant")
@@ -212,5 +257,38 @@ public class AiAssistantController {
             .orderByDesc(AuditLog::getCreateTime)
             .last("limit 50").list();
         return Result.success(logs);
+    }
+
+    /**
+     * 流式 AI 对话接口（SSE）
+     * 使用 Spring AI ChatClient 连接 DeepSeek，逐字返回
+     * GET /api/ai/stream?message=你好&sessionId=abc
+     */
+    @GetMapping(value = "/api/ai/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @ResponseBody
+    public SseEmitter stream(
+            @RequestParam String message,
+            @RequestParam(defaultValue = "default") String sessionId) {
+
+        SseEmitter emitter = new SseEmitter(180_000L);
+
+        chatClient.prompt()
+                .user(message)
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
+                .stream()
+                .content()
+                .subscribe(
+                        token -> {
+                            try {
+                                emitter.send(token);
+                            } catch (Exception e) {
+                                emitter.completeWithError(e);
+                            }
+                        },
+                        emitter::completeWithError,
+                        emitter::complete
+                );
+
+        return emitter;
     }
 }

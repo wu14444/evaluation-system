@@ -43,4 +43,4 @@ window.onload=function(){
   // 互评完成度
   fetch('/admin/api/peer-overview').then(function(r){return r.json()}).then(function(d){var data=d.data||[];var h='<table class="table table-sm"><thead><tr><th>班级</th><th>应完成</th><th>已完成</th><th>完成率</th></tr></thead><tbody>';data.forEach(function(item){var pct=item.total>0?Math.round(item.done/item.total*100):0;h+='<tr><td>'+item.className+'</td><td>'+item.total+'</td><td>'+item.done+'</td><td><div class=progress style=height:18px><div class=progress-bar style=width:'+pct+'%>'+pct+'%</div></div></td></tr>'});h+='</tbody></table>';document.getElementById('peerOverview').innerHTML=h||'暂无数据'})});
 };</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><div th:replace="~{fragments/ai-chat :: floating-chat}"></div></body></html>
