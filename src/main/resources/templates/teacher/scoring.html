@@ -152,7 +152,7 @@
         </div>
         <div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a>
         </div>
-        <div class="nav-item" th:if="${role == 2}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i>
+        <div class="nav-item" th:if="${role == 1}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i>
             申诉管理</a></div>
         <div class="nav-item" th:if="${role == 0}"><a href="/student/self-eval"><i class="bi bi-pencil-square"></i> 学生自评</a>
         </div>
@@ -187,7 +187,7 @@
                                              th:max="${ind.maxScore}" min="0"
                                              th:value="${#maps.containsKey(existing,ind.id)?existing.get(ind.id).score:''}"
                                              placeholder="评分"></div>
-                <div class="col-md-5"><input class="form-control" th:attr="data-comment-id=${ind.id}" placeholder="评语"
+                <div class="col-md-5"><input class="form-control" th:attr="data-comment-id=${ind.id}" placeholder="评语" maxlength="500"
                                              th:value="${#maps.containsKey(existing,ind.id)?existing.get(ind.id).comment:''}">
                 </div>
             </div>
@@ -198,12 +198,25 @@
 
     function saveScores() {
         const data = [];
+        let hasError = false;
         document.querySelectorAll('input[data-id]').forEach(inp => {
             const id = parseInt(inp.dataset.id);
-            const score = parseFloat(inp.value) || 0;
+            const val = inp.value.trim();
+            const score = val ? parseFloat(val) : NaN;
+            if (isNaN(score) || score < 0 || score > parseFloat(inp.max)) {
+                alert('请为指标 #' + id + ' 输入有效分数（0~' + inp.max + '）');
+                hasError = true;
+                return;
+            }
             const comment = document.querySelector('input[data-comment-id="' + id + '"]').value;
+            if (comment && comment.length > 500) {
+                alert('评语不能超过500个字符');
+                hasError = true;
+                return;
+            }
             data.push({batchId, studentId, indicatorId: id, score, comment})
         });
+        if (hasError) return;
         fetch('/teacher/api/teacher-eval/save', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},

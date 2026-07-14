@@ -10,7 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.*;
-
+// 学生互评
 @Controller
 public class RewardPunishController {
     private final RewardPunishService rpService;
@@ -37,8 +37,19 @@ public class RewardPunishController {
         if (rp.getType() == 1 && rp.getScoreChange().compareTo(BigDecimal.ZERO) > 0) {
             rp.setScoreChange(rp.getScoreChange().negate());
         }
-        rp.setStatus(0);
-        rpService.save(rp);
+        if (rp.getId() != null) {
+            rpService.updateById(rp);
+        } else {
+            rp.setStatus(0);
+            rpService.save(rp);
+        }
+        return Result.success();
+    }
+
+    @DeleteMapping("/api/reward-punish/delete/{id}")
+    @ResponseBody
+    public Result delete(@PathVariable Integer id) {
+        rpService.removeById(id);
         return Result.success();
     }
 

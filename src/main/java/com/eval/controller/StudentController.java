@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.*;
-
+// 学生相关控制器
 @Controller
 @RequestMapping("/student")
 public class StudentController {

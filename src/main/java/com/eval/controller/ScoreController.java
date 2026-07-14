@@ -17,7 +17,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.*;
-
+//分数管理
 @Controller
 public class ScoreController {
 

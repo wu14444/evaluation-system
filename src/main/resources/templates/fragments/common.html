@@ -1,75 +1,203 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head(title)">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title th:text="${title}">学生综合素质评价</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <style>
-    :root { --sidebar-width: 240px; --primary: #4e73df; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f7fa; display: flex; min-height: 100vh; }
-    .sidebar { width: var(--sidebar-width); background: linear-gradient(180deg, #2c3e6d 0%, #1a2744 100%); color: #fff; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; overflow-y: auto; }
-    .sidebar .logo { padding: 22px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,.08); }
-    .sidebar .logo h5 { font-size: 15px; margin: 0; color: #e8e8ff; font-weight: 600; }
-    .sidebar .nav-item a { color: rgba(255,255,255,.75); padding: 12px 20px; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 14px; transition: all .2s; }
-    .sidebar .nav-item a:hover, .sidebar .nav-item a.active { background: rgba(255,255,255,.08); color: #fff; border-left: 3px solid #5b9bff; }
-    .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 24px; min-height: 100vh; }
-    .card-custom { background: #fff; border-radius: 10px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,.06); padding: 20px; margin-bottom: 20px; }
-    .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 10px; padding: 20px; }
-    .stat-card.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #333; }
-    .stat-card.orange { background: linear-gradient(135deg, #fa8231 0%, #fdc36b 100%); }
-    .stat-card.blue { background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%); }
-    .stat-card .stat-value { font-size: 28px; font-weight: 700; }
-    .stat-card .stat-label { font-size: 13px; opacity: .85; }
-    .page-title { font-size: 20px; font-weight: 600; color: #2c3e50; margin-bottom: 16px; border-left: 4px solid #4e73df; padding-left: 10px; }
-    table td { vertical-align: middle; }
-    .btn { border-radius: 6px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">学生综合素质评价</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --primary: #4e73df;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #2c3e6d 0%, #1a2744 100%);
+            color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar .logo {
+            padding: 22px 16px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .sidebar .logo h5 {
+            font-size: 15px;
+            margin: 0;
+            color: #e8e8ff;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-item a {
+            color: rgba(255, 255, 255, .75);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all .2s;
+        }
+
+        .sidebar .nav-item a:hover, .sidebar .nav-item a.active {
+            background: rgba(255, 255, 255, .08);
+            color: #fff;
+            border-left: 3px solid #5b9bff;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .card-custom {
+            background: #fff;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #333;
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #fa8231 0%, #fdc36b 100%);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #4e73df 0%, #36b9cc 100%);
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            font-size: 13px;
+            opacity: .85;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            border-left: 4px solid #4e73df;
+            padding-left: 10px;
+        }
+
+        table td {
+            vertical-align: middle;
+        }
+
+        .btn {
+            border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
-  <aside class="sidebar">
+<aside class="sidebar">
     <div class="logo"><h5>🎓 学生综合素质评价系统</h5></div>
     <div class="nav-menu pt-2">
-      <div th:replace="~{fragments/common :: sidebar-menu}"></div>
+        <div th:replace="~{fragments/common :: sidebar-menu}"></div>
     </div>
-  </aside>
-  <div class="main-content"></div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</aside>
+<div class="main-content"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </body>
 </html>
 
 <th:block th:fragment="sidebar-menu">
-  <aside class="sidebar">
-    <div class="logo"><h5>🎓 学生综合素质评价系统</h5></div>
-    <div class="nav-menu pt-2">
-  <div class="nav-item"><a th:href="@{/home}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'dashboard')} ? 'active'"><i class="bi bi-speedometer2"></i> 首页</a></div>
-  <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/indicators}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'indicator') or #strings.contains(#httpServletRequest.requestURI, 'categor')} ? 'active'"><i class="bi bi-gear"></i> 指标设置</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/competitions"><i class="bi bi-trophy"></i> 竞赛证书</a></div>
-  <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/batches}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'batch')} ? 'active'"><i class="bi bi-calendar-check"></i> 评价批次</a></div>
-  <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/users}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'user')} ? 'active'"><i class="bi bi-people"></i> 用户管理</a></div>
-  <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/classes}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'class')} ? 'active'"><i class="bi bi-building"></i> 班级管理</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i> 申诉管理</a></div>
-  <div class="nav-item" th:if="${role == 0}"><a th:href="@{/student/self-eval}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'self-eval')} ? 'active'"><i class="bi bi-pencil-square"></i> 学生自评</a></div>
-<div class="nav-item" th:if="${role == 0}"><a href="/student/appeal"><i class="bi bi-exclamation-triangle"></i> 我要申诉</a></div>
-  <div class="nav-item" th:if="${role == 1}"><a th:href="@{/teacher/scoring}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'scoring')} ? 'active'"><i class="bi bi-clipboard-check"></i> 教师打分</a></div>
-<div class="nav-item" th:if="${role == 1}"><a href="/teacher/growth"><i class="bi bi-graph-up-arrow"></i> 成长档案</a></div>
-  <div class="nav-item">
-    <a th:href="@{/score/summary}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'score')} ? 'active'"><i class="bi bi-bar-chart"></i> 分数汇总</a>
-  </div>
-  <div class="nav-item">
-    <a th:href="@{/ai-assistant}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'ai')} ? 'active'"><i class="bi bi-robot"></i> 🤖AI助手</a>
-  </div>
-  <div class="nav-item">
-    <a th:href="@{/data-screen}" th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'data-screen')} ? 'active'"><i class="bi bi-display"></i> 数据大屏</a>
-  </div>
-  <div class="nav-item mt-3">
-    <a th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i> 退出登录</a>
-  </div>
-  </div>
-  </aside>
+    <aside class="sidebar">
+        <div class="logo"><h5>🎓 学生综合素质评价系统</h5></div>
+        <div class="nav-menu pt-2">
+            <div class="nav-item"><a th:href="@{/home}"
+                                     th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'dashboard')} ? 'active'"><i
+                    class="bi bi-speedometer2"></i> 首页</a></div>
+            <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/indicators}"
+                                                          th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'indicator') or #strings.contains(#httpServletRequest.requestURI, 'categor')} ? 'active'"><i
+                    class="bi bi-gear"></i> 指标设置</a></div>
+            <div class="nav-item" th:if="${role == 2}"><a href="/admin/competitions"><i class="bi bi-trophy"></i> 竞赛证书</a>
+            </div>
+            <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/batches}"
+                                                          th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'batch')} ? 'active'"><i
+                    class="bi bi-calendar-check"></i> 评价批次</a></div>
+            <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/users}"
+                                                          th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'user')} ? 'active'"><i
+                    class="bi bi-people"></i> 用户管理</a></div>
+            <div class="nav-item" th:if="${role == 2}"><a th:href="@{/admin/classes}"
+                                                          th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'class')} ? 'active'"><i
+                    class="bi bi-building"></i> 班级管理</a></div>
+            <div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a>
+            </div>
+            <div class="nav-item" th:if="${role == 1}"><a href="/admin/appeals"><i
+                    class="bi bi-exclamation-triangle"></i> 申诉管理</a></div>
+            <div class="nav-item" th:if="${role == 0}"><a th:href="@{/student/self-eval}"
+                                                          th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'self-eval')} ? 'active'"><i
+                    class="bi bi-pencil-square"></i> 学生自评</a></div>
+            <div class="nav-item" th:if="${role == 0}"><a href="/student/appeal"><i
+                    class="bi bi-exclamation-triangle"></i> 我要申诉</a></div>
+            <div class="nav-item" th:if="${role == 1}"><a th:href="@{/teacher/scoring}"
+                                                          th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'scoring')} ? 'active'"><i
+                    class="bi bi-clipboard-check"></i> 教师打分</a></div>
+            <div class="nav-item" th:if="${role == 1}"><a href="/teacher/growth"><i class="bi bi-graph-up-arrow"></i>
+                成长档案</a></div>
+            <div class="nav-item">
+                <a th:href="@{/score/summary}"
+                   th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'score')} ? 'active'"><i
+                        class="bi bi-bar-chart"></i> 分数汇总</a>
+            </div>
+            <div class="nav-item">
+                <a th:href="@{/ai-assistant}"
+                   th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'ai')} ? 'active'"><i
+                        class="bi bi-robot"></i> 🤖AI助手</a>
+            </div>
+            <div class="nav-item">
+                <a th:href="@{/data-screen}"
+                   th:classappend="${#strings.contains(#httpServletRequest.requestURI, 'data-screen')} ? 'active'"><i
+                        class="bi bi-display"></i> 数据大屏</a>
+            </div>
+            <div class="nav-item mt-3">
+                <a th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i> 退出登录</a>
+            </div>
+        </div>
+    </aside>
 </th:block>

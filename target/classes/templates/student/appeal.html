@@ -1,58 +1,192 @@
-<!DOCTYPE html><html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>申诉</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-<style>:root{--w:240px}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Microsoft YaHei',sans-serif;background:#f5f7fa;display:flex;min-height:100vh}.sidebar{width:var(--w);background:linear-gradient(180deg,#2c3e6d,#1a2744);color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100}.sidebar .logo{padding:20px 16px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar .logo h5{font-size:15px;color:#e8e8ff;margin:0}.sidebar .nav-item a{color:rgba(255,255,255,.75);padding:12px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;font-size:14px}.sidebar .nav-item a:hover,.sidebar .nav-item a.active{background:rgba(255,255,255,.08);color:#fff;border-left:3px solid #5b9bff}.main-content{margin-left:var(--w);flex:1;padding:24px}.card-custom{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:20px;margin-bottom:20px}.page-title{font-size:20px;font-weight:600;color:#2c3e50;margin-bottom:16px;border-left:4px solid #4e73df;padding-left:10px}.btn{border-radius:6px}</style></head>
-<body><aside class="sidebar"><div class="logo"><h5><i class="bi bi-mortarboard"></i> 学生综合素质评价</h5></div><div class="nav-menu pt-2">
-<div class="nav-item"><a href="/home"><i class="bi bi-speedometer2"></i> 首页</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/indicators"><i class="bi bi-gear"></i> 指标设置</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/competitions"><i class="bi bi-trophy"></i> 竞赛证书</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/batches"><i class="bi bi-calendar-check"></i> 评价批次</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/users"><i class="bi bi-people"></i> 用户管理</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/classes"><i class="bi bi-building"></i> 班级管理</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a></div>
-<div class="nav-item" th:if="${role == 2}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i> 申诉管理</a></div>
-<div class="nav-item" th:if="${role == 0}"><a href="/student/self-eval"><i class="bi bi-pencil-square"></i> 学生自评</a></div>
-<div class="nav-item" th:if="${role == 0}"><a href="/student/appeal"><i class="bi bi-exclamation-triangle"></i> 我要申诉</a></div>
-<div class="nav-item" th:if="${role == 0}"><a href="/student/peer-eval"><i class="bi bi-people-fill"></i> 班级互评</a></div>
-<div class="nav-item" th:if="${role == 1}"><a href="/teacher/scoring"><i class="bi bi-clipboard-check"></i> 教师打分</a></div>
-<div class="nav-item" th:if="${role == 1}"><a href="/teacher/growth"><i class="bi bi-graph-up-arrow"></i> 成长档案</a></div>
-<div class="nav-item"><a href="/score/summary"><i class="bi bi-bar-chart"></i> 分数汇总</a></div>
-<div class="nav-item"><a href="/ai-assistant"><i class="bi bi-robot"></i> AI助手</a></div>
-<div class="nav-item"><a href="/data-screen"><i class="bi bi-display"></i> 数据大屏</a></div>
-<div class="nav-item mt-3"><a href="/logout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></div></div></aside>
-<div class="main-content"><div class="page-title"><i class="bi bi-exclamation-triangle"></i> 在线申诉</div>
-<div class="card-custom"><h6>提交申诉</h6>
-<div class="mb-3"><label>申诉类型</label><select id="type" class="form-select"><option>评价分数有误</option><option>证明材料未被采纳</option><option>惩罚记录有异议</option><option>排名计算有误</option><option>其他问题</option></select></div>
-<div class="mb-3"><label>申诉理由</label><textarea id="reason" class="form-control" rows="4" placeholder="请详细说明申诉理由..."></textarea></div>
-<div class="mb-3"><label>补充材料（可选）</label><input type="file" class="form-control" accept=".jpg,.png,.pdf"></div>
-<button class="btn btn-primary" id="submitBtn" onclick="submit()">提交申诉</button></div>
-<div class="card-custom mt-3"><h6>我的申诉记录</h6><div id="history">加载中...</div></div>
-<div id="msg"></div></div>
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>申诉</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>:root {
+        --w: 240px
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box
+    }
+
+    body {
+        font-family: 'Microsoft YaHei', sans-serif;
+        background: #f5f7fa;
+        display: flex;
+        min-height: 100vh
+    }
+
+    .sidebar {
+        width: var(--w);
+        background: linear-gradient(180deg, #2c3e6d, #1a2744);
+        color: #fff;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 100
+    }
+
+    .sidebar .logo {
+        padding: 20px 16px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, .08)
+    }
+
+    .sidebar .logo h5 {
+        font-size: 15px;
+        color: #e8e8ff;
+        margin: 0
+    }
+
+    .sidebar .nav-item a {
+        color: rgba(255, 255, 255, .75);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font-size: 14px
+    }
+
+    .sidebar .nav-item a:hover, .sidebar .nav-item a.active {
+        background: rgba(255, 255, 255, .08);
+        color: #fff;
+        border-left: 3px solid #5b9bff
+    }
+
+    .main-content {
+        margin-left: var(--w);
+        flex: 1;
+        padding: 24px
+    }
+
+    .card-custom {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
+        padding: 20px;
+        margin-bottom: 20px
+    }
+
+    .page-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 16px;
+        border-left: 4px solid #4e73df;
+        padding-left: 10px
+    }
+
+    .btn {
+        border-radius: 6px
+    }</style>
+</head>
+<body>
+<aside class="sidebar">
+    <div class="logo"><h5><i class="bi bi-mortarboard"></i> 学生综合素质评价</h5></div>
+    <div class="nav-menu pt-2">
+        <div class="nav-item"><a href="/home"><i class="bi bi-speedometer2"></i> 首页</a></div>
+        <div class="nav-item" th:if="${role == 2}"><a href="/admin/indicators"><i class="bi bi-gear"></i> 指标设置</a>
+        </div>
+        <div class="nav-item" th:if="${role == 2}"><a href="/admin/competitions"><i class="bi bi-trophy"></i>
+            竞赛证书</a></div>
+        <div class="nav-item" th:if="${role == 2}"><a href="/admin/batches"><i class="bi bi-calendar-check"></i> 评价批次</a>
+        </div>
+        <div class="nav-item" th:if="${role == 2}"><a href="/admin/users"><i class="bi bi-people"></i> 用户管理</a>
+        </div>
+        <div class="nav-item" th:if="${role == 2}"><a href="/admin/classes"><i class="bi bi-building"></i> 班级管理</a>
+        </div>
+        <div class="nav-item" th:if="${role == 2}"><a href="/admin/rewards"><i class="bi bi-award"></i> 奖惩管理</a>
+        </div>
+        <div class="nav-item" th:if="${role == 1}"><a href="/admin/appeals"><i class="bi bi-exclamation-triangle"></i>
+            申诉管理</a></div>
+        <div class="nav-item" th:if="${role == 0}"><a href="/student/self-eval"><i class="bi bi-pencil-square"></i> 学生自评</a>
+        </div>
+        <div class="nav-item" th:if="${role == 0}"><a href="/student/appeal"><i class="bi bi-exclamation-triangle"></i>
+            我要申诉</a></div>
+        <div class="nav-item" th:if="${role == 0}"><a href="/student/peer-eval"><i class="bi bi-people-fill"></i> 班级互评</a>
+        </div>
+        <div class="nav-item" th:if="${role == 1}"><a href="/teacher/scoring"><i class="bi bi-clipboard-check"></i> 教师打分</a>
+        </div>
+        <div class="nav-item" th:if="${role == 1}"><a href="/teacher/growth"><i class="bi bi-graph-up-arrow"></i> 成长档案</a>
+        </div>
+        <div class="nav-item"><a href="/score/summary"><i class="bi bi-bar-chart"></i> 分数汇总</a></div>
+        <div class="nav-item"><a href="/ai-assistant"><i class="bi bi-robot"></i> AI助手</a></div>
+        <div class="nav-item"><a href="/data-screen"><i class="bi bi-display"></i> 数据大屏</a></div>
+        <div class="nav-item mt-3"><a href="/logout"><i class="bi bi-box-arrow-right"></i> 退出登录</a></div>
+    </div>
+</aside>
+<div class="main-content">
+    <div class="page-title"><i class="bi bi-exclamation-triangle"></i> 在线申诉</div>
+    <div class="card-custom"><h6>提交申诉</h6>
+        <div class="mb-3"><label>申诉类型</label><select id="type" class="form-select">
+            <option>评价分数有误</option>
+            <option>证明材料未被采纳</option>
+            <option>惩罚记录有异议</option>
+            <option>排名计算有误</option>
+            <option>其他问题</option>
+        </select></div>
+        <div class="mb-3"><label>申诉理由</label><textarea id="reason" class="form-control" rows="4"
+                                                           placeholder="请详细说明申诉理由..." maxlength="500" required></textarea></div>
+        <div class="mb-3"><label>补充材料（可选）</label><input type="file" class="form-control" accept=".jpg,.png,.pdf">
+        </div>
+        <button class="btn btn-primary" id="submitBtn" onclick="submit()">提交申诉</button>
+    </div>
+    <div class="card-custom mt-3"><h6>我的申诉记录</h6>
+        <div id="history">加载中...</div>
+    </div>
+    <div id="msg"></div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.getElementById('submitBtn').addEventListener('click', function(){
-  var reason = document.getElementById('reason').value.trim();
-  if(!reason){ alert('请输入申诉理由'); return; }
-  var type = document.getElementById('type').value;
-  var fullReason = '【'+type+'】'+reason;
-  fetch('/api/appeal/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason:fullReason})})
-    .then(function(r){return r.json()}).then(function(d){
-      document.getElementById('msg').innerHTML='<div class="alert alert-success mt-2">'+d.msg+'</div>';
-      loadHistory();
-      document.getElementById('reason').value='';
+    document.getElementById('submitBtn').addEventListener('click', function () {
+        var reason = document.getElementById('reason').value.trim();
+        if (!reason) {
+            alert('请输入申诉理由');
+            return;
+        }
+        if (reason.length > 500) {
+            alert('申诉理由不能超过500个字符');
+            return;
+        }
+        var type = document.getElementById('type').value;
+        var fullReason = '【' + type + '】' + reason;
+        fetch('/api/appeal/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reason: fullReason})
+        })
+            .then(function (r) {
+                return r.json()
+            }).then(function (d) {
+            document.getElementById('msg').innerHTML = '<div class="alert alert-success mt-2">' + d.msg + '</div>';
+            loadHistory();
+            document.getElementById('reason').value = '';
+        });
     });
-});
-function loadHistory(){
-  fetch('/api/my-appeals').then(function(r){return r.json()}).then(function(d){
-    var items=d.data||[];
-    var h=items.length?'':'<p class=text-muted>暂无申诉记录</p>';
-    items.forEach(function(i){
-      var bg=i.actionType=='申诉'?'warning':'info';
-      h+='<div class="alert alert-'+bg+' py-2"><small>'+i.createTime+'</small><br>'+i.actionDetail+'</div>';
-    });
-    document.getElementById('history').innerHTML=h;
-  });
-}
-loadHistory();
-</script></body></html>
+
+    function loadHistory() {
+        fetch('/api/my-appeals').then(function (r) {
+            return r.json()
+        }).then(function (d) {
+            var items = d.data || [];
+            var h = items.length ? '' : '<p class=text-muted>暂无申诉记录</p>';
+            items.forEach(function (i) {
+                var bg = i.actionType == '申诉' ? 'warning' : 'info';
+                h += '<div class="alert alert-' + bg + ' py-2"><small>' + i.createTime + '</small><br>' + i.actionDetail + '</div>';
+            });
+            document.getElementById('history').innerHTML = h;
+        });
+    }
+
+    loadHistory();
+</script>
+</body>
+</html>
